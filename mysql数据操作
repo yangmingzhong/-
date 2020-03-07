@@ -16,6 +16,9 @@ SHOW TABLES; # 查看test中的表tab_student
 
 mysql –u用户名 [–h主机名或者IP地址] –p密码
 说明：用户名是你登录的用户，主机名或者IP地址为可选项，如果是本地连接则不需要，远程连接需要填写，密码是对应用户的密码。
+查看相关参数配置操作
+show global variables like 'innodb_buffer_pool%';
+show global status like 'Innodb_page_size';
 
 第三：增加新用户
 create user 'test'@'localhost' identified by '123';
