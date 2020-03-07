@@ -35,3 +35,23 @@ awk '{print $1}' access.log|sort | uniq -c |sort -n -k 1 -r|more
 cat access.log | grep "send" | awk '{print $1}' | sort | uniq -c | sort -nr
 通过日志查看当天指定ip访问次数过的url和访问次数：
 cat access.log | grep "222.132.90.94" | awk '{print $7}' | sort | uniq -c | sort -nr
+
+3.开启 iptables
+-A INPUT -s 39.106.141.35/32 -j DROP
+-A INPUT -p tcp -m tcp --dport 3306 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p icmp -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+-A INPUT -j REJECT --reject-with icmp-host-prohibited
+禁止某个ip
+iptables -A INPUT -p tcp -s 39.106.141.35 -j DROP
+service iptables save
+service iptables restart
+开启某个端口
+iptables -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
+service iptables save
+service iptables restart
+
+
