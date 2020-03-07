@@ -273,3 +273,6 @@ Enter sanme key again: *****
 注意：
 加密、解除密码、重设密码之后，一定要保存之后才能生效。
 如果密码输入错误，vim不会拒绝访问者编辑文件。在这种显示乱码的情况下编辑文件并保存，整个文件就会变得混乱不堪，无法辨识。今后即使使用正确的密码打开文件，也看不到正确的文档了。
+
+完整图
+https://s1.51cto.com/images/blog/201712/23/44478357543d54f2255d3a3c77adec4a.jpg?x-oss-process=image/watermark,size_16,text_QDUxQ1RP5Y2a5a6i,color_FFFFFF,t_100,g_se,x_10,y_10,shadow_90,type_ZmFuZ3poZW5naGVpdGk=
