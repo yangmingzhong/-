@@ -10,7 +10,7 @@ netstat -ant | awk '{print $NF}' | grep -v '[a-z]' | sort | uniq -c
 netstat -anlp|grep 80|grep tcp|awk '{print $5}'|awk -F: '{print $1}'|sort|uniq -c|sort -nr|head -n20
 查找较多time_wait连接：
 netstat -n|grep TIME_WAIT|awk '{print $5}'|sort|uniq -c|sort -rn|head -n20
-查看当前并发访问数：netstat -an | grep ESTABLISHED | wc -l
+查看当前并发连接数：netstat -an | grep ESTABLISHED | wc -l
 查看所有连接请求：netstat -tn 2>/dev/null
 但是只要established的，则grep "ESTABLISHED"：	netstat -tn | grep ESTABLISHED 2>/dev/null
 查看访问某一ip的所有外部连接IP(数量从多到少)：netstat -nt | grep 121.41.30.149:80 | awk '{print $5}' | awk -F: '{print ($1>$4?$1:$4)}' | sort | uniq -c | sort -nr | head
