@@ -75,6 +75,7 @@ server
 
 
 2.keepalived配置
+安装 yum install -y keepalived
 1）master-node负载机上的keepalived配置
 [root@master-node ~]# cp /etc/keepalived/keepalived.conf /etc/keepalived/keepalived.conf.bak
 [root@master-node ~]# vim /etc/keepalived/keepalived.conf
@@ -263,10 +264,10 @@ fi
 最后验证（将配置的后端应用域名都解析到VIP地址上）：关闭主服务器上的keepalived或nginx，vip都会自动飘到从服务器上。
 验证keepalived服务故障情况：
 1）先后在master、slave服务器上启动nginx和keepalived，保证这两个服务都正常开启:
-[root@master-node ~]# /usr/local/nginx/sbin/nginx
-[root@master-node ~]# /etc/init.d/keepalived start
-[root@slave-node ~]# /usr/local/nginx/sbin/nginx
-[root@slave-node ~]# /etc/init.d/keepalived start
+[root@master-node ~]# /usr/local/nginx/sbin/nginx    #service nginx restart
+[root@master-node ~]# /etc/init.d/keepalived start   # service keepalived restart
+[root@slave-node ~]# /usr/local/nginx/sbin/nginx     #service nginx restart
+[root@slave-node ~]# /etc/init.d/keepalived start    #service keepalived restart
 2）在主服务器上查看是否已经绑定了虚拟IP
 [root@master-node ~]# ip addr
 .......
