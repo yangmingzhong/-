@@ -1,7 +1,7 @@
 关于Linux遇到：network is unreachable的解决方法   
        #第一步
       cd /etc/sysconfig/network-scripts/ 
-      vi ifcfg-ens3
+      vi ifcfg-ens33
       修改ONROOT   no改为yes
       
       最后service network restart
