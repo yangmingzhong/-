@@ -119,6 +119,49 @@ track_script {                      #执行监控的服务。注意这个设置�
    chk_http_port                    #引用VRRP脚本，即在 vrrp_script 部分指定的名字。定期运行它们来改变优先级，并最终引发主备切换。
 }
 }
+没有中文文字说明
+! Configuration File for keepalived    
+  
+global_defs {
+notification_email {                
+1306643459@qq.com                     
+1508089581@qq.com
+}
+  
+notification_email_from 1306643459@qq.com  
+smtp_server 127.0.0.1                    
+smtp_connect_timeout 30                 
+router_id slave-node                    
+}
+  
+vrrp_script chk_http_port {         
+    script "/opt/chk_nginx.sh"   
+    interval 2                      
+    weight -5                       
+    fall 2                   
+    rise 1                  
+}
+  
+vrrp_instance VI_1 {            
+    state MASTER           
+    interface ens33  
+    # mcast_src_ip 103.110.98.24  
+    virtual_router_id 51        
+    priority 101               
+    advert_int 1               
+    authentication {            
+        auth_type PASS         
+        auth_pass 1111          
+    }
+    virtual_ipaddress {        
+        192.168.207.131
+    }
+ 
+track_script {                     
+   chk_http_port                 
+} 
+}
+
 2）slave-node负载机上的keepalived配置
 [root@slave-node ~]# cp /etc/keepalived/keepalived.conf /etc/keepalived/keepalived.conf.bak
 [root@slave-node ~]# vim /etc/keepalived/keepalived.conf
@@ -156,13 +199,12 @@ vrrp_instance VI_1 {
         auth_pass 1111          
     }
     virtual_ipaddress {        
-        103.110.98.20
+        192.168.207.131
     }
  
 track_script {                     
    chk_http_port                 
-}
- 
+} 
 }
 让keepalived监控NginX的状态：
 1）经过前面的配置，如果master主服务器的keepalived停止服务，slave从服务器会自动接管VIP对外服务；
