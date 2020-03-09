@@ -1,0 +1,74 @@
+2.1 轮询
+轮询方式是Nginx负载默认的方式，顾名思义，所有请求都按照时间顺序分配到不同的服务上，如果服务Down掉，可以自动剔除，如下配置后轮训10001服务和10002服务。
+
+upstream  webhost {
+       server    localhost:10001;
+       server    localhost:10002;
+}
+2.2 权重
+指定每个服务的权重比例，weight和访问比率成正比，通常用于后端服务机器性能不统一，将性能好的分配权重高来发挥服务器最大性能，如下配置后10002服务的访问比率会是10001服务的二倍。
+weight 来决定，默认为 1 ，weight 越大，权重就越大。
+upstream  webhost {
+       server    localhost:10001 weight=1;
+       server    localhost:10002 weight=2;
+}
+2.3 iphash
+每个请求都根据访问ip的hash结果分配，经过这样的处理，每个访客固定访问一个后端服务，如下配置（ip_hash可以和weight配合使用）。
+
+upstream  webhost {
+       ip_hash; 
+       server    localhost:10001 weight=1;
+       server    localhost:10002 weight=2;
+}
+2.4 最少连接
+将请求分配到连接数最少的服务上。
+
+upstream  webhost {
+       least_conn;
+       server    localhost:10001 weight=1;
+       server    localhost:10002 weight=2;
+}
+2.5 fair
+按后端服务器的响应时间来分配请求，响应时间短的优先分配。
+upstream  webhost {
+       server    localhost:10001 weight=1;
+       server    localhost:10002 weight=2;
+       fair;  
+}
+2.6
+down，表示当前的server暂时不参与负载均衡。
+backup，预留的备份机器。当其他所有的非backup机器出现故障或者忙的时候，才会请求backup机器，因 此这台机器的压力最轻。
+upstream  webhost {
+         #后端服务器访问规则
+        server 192.168.1.115:8080  weight=1;       #server1
+        server 192.168.1.131:8080  down;           #server2 不参与负载
+        server 192.168.1.94:8090   backup;         #server3 备份机   
+       fair;  
+}
+配置
+upstream webhost{
+        # ip_hash;
+        server test.one.com:88;
+        server test.two.com:88 ;
+        }
+server
+{
+    listen 80;
+    server_name test.fzjh.com;
+   location / {
+    proxy_pass http://webhost;
+    proxy_redirect default;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $host;
+    client_max_body_size 10m;
+    client_body_buffer_size 128k;
+    proxy_connect_timeout 90;
+    proxy_send_timeout 90;
+    proxy_read_timeout 90;
+    proxy_buffer_size 4k;
+    proxy_buffers 4 32k;
+    proxy_busy_buffers_size 64k;
+    proxy_temp_file_write_size 64k;
+}
+}
