@@ -45,7 +45,7 @@ upstream  webhost {
         server 192.168.1.94:8090   backup;         #server3 备份机   
        fair;  
 }
-配置
+完整示例配置
 upstream webhost{
         # ip_hash;
         server test.one.com:88;
@@ -72,3 +72,242 @@ server
     proxy_temp_file_write_size 64k;
 }
 }
+
+
+2.keepalived配置
+1）master-node负载机上的keepalived配置
+[root@master-node ~]# cp /etc/keepalived/keepalived.conf /etc/keepalived/keepalived.conf.bak
+[root@master-node ~]# vim /etc/keepalived/keepalived.conf
+! Configuration File for keepalived     #全局定义
+  
+global_defs {
+notification_email {     #指定keepalived在发生事件时(比如切换)发送通知邮件的邮箱
+1306643459@qq.com   #设置报警邮件地址，可以设置多个，每行一个。 需开启本机的sendmail服务
+1508089581@qq.com
+}
+  
+notification_email_from 1306643459@qq.com    #keepalived在发生诸如切换操作时需要发送email通知地址
+smtp_server 127.0.0.1      #指定发送email的smtp服务器
+smtp_connect_timeout 30    #设置连接smtp server的超时时间
+router_id master-node     #运行keepalived的机器的一个标识，通常可设为hostname。故障发生时，发邮件时显示在邮件主题中的信息。
+}
+  
+vrrp_script chk_http_port {      #检测nginx服务是否在运行。有很多方式，比如进程，用脚本检测等等
+    script "/opt/chk_nginx.sh"   #这里通过脚本监测
+    interval 2                   #脚本执行间隔，每2s检测一次
+    weight -5                    #脚本结果导致的优先级变更，检测失败（脚本返回非0）则优先级 -5
+    fall 2                    #检测连续2次失败才算确定是真失败。会用weight减少优先级（1-255之间）
+    rise 1                    #检测1次成功就算成功。但不修改优先级
+}
+  
+vrrp_instance VI_1 {    #keepalived在同一virtual_router_id中priority（0-255）最大的会成为master，也就是接管VIP，当priority最大的主机发生故障后次priority将会接管
+    state MASTER    #指定keepalived的角色，MASTER表示此主机是主服务器，BACKUP表示此主机是备用服务器。注意这里的state指定instance(Initial)的初始状态，就是说在配置好后，这台服务器的初始状态就是这里指定的，但这里指定的不算，还是得要通过竞选通过优先级来确定。如果这里设置为MASTER，但如若他的优先级不及另外一台，那么这台在发送通告时，会发送自己的优先级，另外一台发现优先级不如自己的高，那么他会就回抢占为MASTER
+    interface em1          #指定HA监测网络的接口。实例绑定的网卡，因为在配置虚拟IP的时候必须是在已有的网卡上添加的
+    mcast_src_ip 103.110.98.14  # 发送多播数据包时的源IP地址，这里注意了，这里实际上就是在哪个地址上发送VRRP通告，这个非常重要，一定要选择稳定的网卡端口来发送，这里相当于heartbeat的心跳端口，如果没有设置那么就用默认的绑定的网卡的IP，也就是interface指定的IP地址
+    virtual_router_id 51         #虚拟路由标识，这个标识是一个数字，同一个vrrp实例使用唯一的标识。即同一vrrp_instance下，MASTER和BACKUP必须是一致的
+    priority 101                 #定义优先级，数字越大，优先级越高，在同一个vrrp_instance下，MASTER的优先级必须大于BACKUP的优先级
+    advert_int 1                 #设定MASTER与BACKUP负载均衡器之间同步检查的时间间隔，单位是秒
+    authentication {             #设置验证类型和密码。主从必须一样
+        auth_type PASS           #设置vrrp验证类型，主要有PASS和AH两种
+        auth_pass 1111           #设置vrrp验证密码，在同一个vrrp_instance下，MASTER与BACKUP必须使用相同的密码才能正常通信
+    }
+    virtual_ipaddress {          #VRRP HA 虚拟地址 如果有多个VIP，继续换行填写
+        103.110.98.20
+    }
+ 
+track_script {                      #执行监控的服务。注意这个设置不能紧挨着写在vrrp_script配置块的后面（实验中碰过的坑），否则nginx监控失效！！
+   chk_http_port                    #引用VRRP脚本，即在 vrrp_script 部分指定的名字。定期运行它们来改变优先级，并最终引发主备切换。
+}
+}
+2）slave-node负载机上的keepalived配置
+[root@slave-node ~]# cp /etc/keepalived/keepalived.conf /etc/keepalived/keepalived.conf.bak
+[root@slave-node ~]# vim /etc/keepalived/keepalived.conf
+! Configuration File for keepalived    
+  
+global_defs {
+notification_email {                
+1306643459@qq.com                     
+1508089581@qq.com
+}
+  
+notification_email_from 1306643459@qq.com  
+smtp_server 127.0.0.1                    
+smtp_connect_timeout 30                 
+router_id slave-node                    
+}
+  
+vrrp_script chk_http_port {         
+    script "/opt/chk_nginx.sh"   
+    interval 2                      
+    weight -5                       
+    fall 2                   
+    rise 1                  
+}
+  
+vrrp_instance VI_1 {            
+    state BACKUP           
+    interface em1            
+    mcast_src_ip 103.110.98.24  
+    virtual_router_id 51        
+    priority 99               
+    advert_int 1               
+    authentication {            
+        auth_type PASS         
+        auth_pass 1111          
+    }
+    virtual_ipaddress {        
+        103.110.98.20
+    }
+ 
+track_script {                     
+   chk_http_port                 
+}
+ 
+}
+让keepalived监控NginX的状态：
+1）经过前面的配置，如果master主服务器的keepalived停止服务，slave从服务器会自动接管VIP对外服务；
+一旦主服务器的keepalived恢复，会重新接管VIP。 但这并不是我们需要的，我们需要的是当NginX停止服务的时候能够自动切换。
+2）keepalived支持配置监控脚本，我们可以通过脚本监控NginX的状态，如果状态不正常则进行一系列的操作，最终仍不能恢复NginX则杀掉keepalived，使得从服务器能够接管服务。
+
+如何监控NginX的状态
+最简单的做法是监控NginX进程，更靠谱的做法是检查NginX端口，最靠谱的做法是检查多个url能否获取到页面。
+
+注意：这里要提示一下keepalived.conf中vrrp_script配置区的script一般有2种写法：
+1）通过脚本执行的返回结果，改变优先级，keepalived继续发送通告消息，backup比较优先级再决定。这是直接监控Nginx进程的方式。
+2）脚本里面检测到异常，直接关闭keepalived进程，backup机器接收不到advertisement会抢占IP。这是检查NginX端口的方式。
+上文script配置部分，"killall -0 nginx"属于第1种情况，"/opt/chk_nginx.sh" 属于第2种情况。个人更倾向于通过shell脚本判断，但有异常时exit 1，正常退出exit 0，然后keepalived根据动态调整的 vrrp_instance 优先级选举决定是否抢占VIP：
+如果脚本执行结果为0，并且weight配置的值大于0，则优先级相应的增加
+如果脚本执行结果非0，并且weight配置的值小于0，则优先级相应的减少
+其他情况，原本配置的优先级不变，即配置文件中priority对应的值。
+
+提示：
+优先级不会不断的提高或者降低
+可以编写多个检测脚本并为每个检测脚本设置不同的weight（在配置中列出就行）
+不管提高优先级还是降低优先级，最终优先级的范围是在[1,254]，不会出现优先级小于等于0或者优先级大于等于255的情况
+在MASTER节点的 vrrp_instance 中 配置 nopreempt ，当它异常恢复后，即使它 prio 更高也不会抢占，这样可以避免正常情况下做无谓的切换
+以上可以做到利用脚本检测业务进程的状态，并动态调整优先级从而实现主备切换。
+
+另外：在默认的keepalive.conf里面还有 virtual_server,real_server 这样的配置，我们这用不到，它是为lvs准备的。
+
+如何尝试恢复服务
+由于keepalived只检测本机和他机keepalived是否正常并实现VIP的漂移，而如果本机nginx出现故障不会则不会漂移VIP。
+所以编写脚本来判断本机nginx是否正常，如果发现NginX不正常，重启之。等待3秒再次校验，仍然失败则不再尝试，关闭keepalived，其他主机此时会接管VIP；
+
+根据上述策略很容易写出监控脚本。此脚本必须在keepalived服务运行的前提下才有效！如果在keepalived服务先关闭的情况下，那么nginx服务关闭后就不能实现自启动了。
+该脚本检测ngnix的运行状态，并在nginx进程不存在时尝试重新启动ngnix，如果启动失败则停止keepalived，准备让其它机器接管。
+监控脚本如下（master和slave都要有这个监控脚本）：
+[root@master-node ~]# vim /opt/chk_nginx.sh
+#!/bin/bash
+counter=$(ps -C nginx --no-heading|wc -l)
+if [ "${counter}" = "0" ]; then
+    /usr/local/nginx/sbin/nginx
+    sleep 2
+    counter=$(ps -C nginx --no-heading|wc -l)
+    if [ "${counter}" = "0" ]; then
+        /etc/init.d/keepalived stop
+    fi
+fi
+[root@master-node ~]# chmod 755 /opt/chk_nginx.sh
+[root@master-node ~]# sh /opt/chk_nginx.sh
+80/tcp open http
+此架构需考虑的问题
+1）master没挂，则master占有vip且nginx运行在master上
+2）master挂了，则slave抢占vip且在slave上运行nginx服务
+3）如果master上的nginx服务挂了，则nginx会自动重启，重启失败后会自动关闭keepalived，这样vip资源也会转移到slave上。
+4）检测后端服务器的健康状态
+5）master和slave两边都开启nginx服务，无论master还是slave，当其中的一个keepalived服务停止后，vip都会漂移到keepalived服务还在的节点上；
+如果要想使nginx服务挂了，vip也漂移到另一个节点，则必须用脚本或者在配置文件里面用shell命令来控制。（nginx服务宕停后会自动启动，启动失败后会强制关闭keepalived，从而致使vip资源漂移到另一台机器上）
+
+最后验证（将配置的后端应用域名都解析到VIP地址上）：关闭主服务器上的keepalived或nginx，vip都会自动飘到从服务器上。
+验证keepalived服务故障情况：
+1）先后在master、slave服务器上启动nginx和keepalived，保证这两个服务都正常开启:
+[root@master-node ~]# /usr/local/nginx/sbin/nginx
+[root@master-node ~]# /etc/init.d/keepalived start
+[root@slave-node ~]# /usr/local/nginx/sbin/nginx
+[root@slave-node ~]# /etc/init.d/keepalived start
+2）在主服务器上查看是否已经绑定了虚拟IP
+[root@master-node ~]# ip addr
+.......
+2: em1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP qlen 1000
+link/ether 44:a8:42:17:3d:dd brd ff:ff:ff:ff:ff:ff
+inet 103.110.98.14/26 brd 103.10.86.63 scope global em1
+valid_lft forever preferred_lft forever
+inet 103.110.98.20/32 scope global em1
+valid_lft forever preferred_lft forever
+inet 103.110.98.20/26 brd 103.10.86.63 scope global secondary em1:0
+valid_lft forever preferred_lft forever
+inet6 fe80::46a8:42ff:fe17:3ddd/64 scope link
+valid_lft forever preferred_lft forever
+3）停止主服务器上的keepalived:
+3）停止主服务器上的keepalived:
+[root@master-node ~]# /etc/init.d/keepalived stop
+Stopping keepalived (via systemctl): [ OK ]
+[root@master-node ~]# /etc/init.d/keepalived status
+[root@master-node ~]# ps -ef|grep keepalived
+root 26952 24348 0 17:49 pts/0 00:00:00 grep --color=auto keepalived
+[root@master-node ~]# 
+4）然后在从服务器上查看，发现已经接管了VIP：
+[root@slave-node ~]# ip addr
+.......
+2: em1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP qlen 1000
+link/ether 44:a8:42:17:3c:a5 brd ff:ff:ff:ff:ff:ff
+inet 103.110.98.24/26 brd 103.10.86.63 scope global em1
+inet 103.110.98.20/32 scope global em1
+inet6 fe80::46a8:42ff:fe17:3ca5/64 scope link
+valid_lft forever preferred_lft forever
+.......
+发现master的keepalived服务挂了后，vip资源自动漂移到slave上，并且网站正常访问，丝毫没有受到影响！
+5）重新启动主服务器上的keepalived，发现主服务器又重新接管了VIP，此时slave机器上的VIP已经不在了
+[root@master-node ~]# /etc/init.d/keepalived start
+Starting keepalived (via systemctl): [ OK ]
+[root@master-node ~]# ip addr
+.......
+2: em1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP qlen 1000
+link/ether 44:a8:42:17:3d:dd brd ff:ff:ff:ff:ff:ff
+inet 103.110.98.14/26 brd 103.10.86.63 scope global em1
+valid_lft forever preferred_lft forever
+inet 103.110.98.20/32 scope global em1
+valid_lft forever preferred_lft forever
+inet 103.110.98.20/26 brd 103.10.86.63 scope global secondary em1:0
+valid_lft forever preferred_lft forever
+inet6 fe80::46a8:42ff:fe17:3ddd/64 scope link
+valid_lft forever preferred_lft forever
+......
+
+[root@slave-node ~]# ip addr
+.......
+2: em1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP qlen 1000
+link/ether 44:a8:42:17:3c:a5 brd ff:ff:ff:ff:ff:ff
+inet 103.110.98.24/26 brd 103.10.86.63 scope global em1
+inet6 fe80::46a8:42ff:fe17:3ca5/64 scope link
+valid_lft forever preferred_lft forever
+接着验证下nginx服务故障，看看keepalived监控nginx状态的脚本是否正常？
+如下：手动关闭master机器上的nginx服务，最多2秒钟后就会自动起来（因为keepalive监控nginx状态的脚本执行间隔时间为2秒）。域名访问几乎不受影响！
+[root@master-node ~]# /usr/local/nginx/sbin/nginx -s stop
+[root@master-node ~]# ps -ef|grep nginx
+root 28401 24826 0 19:43 pts/1 00:00:00 grep --color=auto nginx
+[root@master-node ~]# ps -ef|grep nginx
+root 28871 28870 0 19:47 ? 00:00:00 /bin/sh /opt/chk_nginx.sh
+root 28875 24826 0 19:47 pts/1 00:00:00 grep --color=auto nginx
+[root@master-node ~]# ps -ef|grep nginx
+root 28408 1 0 19:43 ? 00:00:00 nginx: master process /usr/local/nginx/sbin/nginx
+www 28410 28408 0 19:43 ? 00:00:00 nginx: worker process
+www 28411 28408 0 19:43 ? 00:00:00 nginx: worker process
+www 28412 28408 0 19:43 ? 00:00:00 nginx: worker process
+www 28413 28408 0 19:43 ? 00:00:00 nginx: worker process
+最后可以查看两台服务器上的/var/log/messages，观察VRRP日志信息的vip漂移情况~~~~
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+可能出现的问题：
+1）VIP绑定失败
+原因可能有：
+-> iptables开启后，没有开放允许VRRP协议通信的策略（也有可能导致脑裂）；可以选择关闭iptables
+-> keepalived.conf文件配置有误导致，比如interface绑定的设备错误
+
+2）VIP绑定后，外部ping不通
+可能的原因是：
+-> 网络故障，可以检查下网关是否正常；
+-> 网关的arp缓存导致，可以进行arp更新，命令是"arping -I 网卡名 -c 5 -s VIP 网关
+
+
+
