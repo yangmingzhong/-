@@ -89,3 +89,4 @@ mysql> reset slave;   重置slave
 mysql> change master to ......
 mysql> start slave;
 
+2.配置没加载成功。有可能是数据库没有完全关闭，导致配置没有加载
