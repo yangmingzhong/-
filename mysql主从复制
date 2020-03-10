@@ -70,7 +70,7 @@ show schemas;
 
 说明ymzdb模式同步到从库了
 
-（5）、在从库上查看jgyw模式下的表及数据，即：
+（5）、在从库上查看ymzdb模式下的表及数据，即：
 
 use ymzdb;
 show tables;
@@ -89,4 +89,25 @@ mysql> reset slave;   重置slave
 mysql> change master to ......
 mysql> start slave;
 
-2.配置没加载成功。有可能是数据库没有完全关闭，导致配置没有加载
+2 Slave_SQL_Running:No的两种解决办法
+解决办法1
+mysql> stop slave ;
+mysql> set GLOBAL SQL_SLAVE_SKIP_COUNTER=1;
+mysql> start slave ;
+解决办法二、（推荐）
+
+首先停掉Slave服务：slave stop
+到主服务器上查看主机状态：
+记录File和Position对应的值
+进入master
+show master status;
+然后到slave服务器上执行手动同步：
+
+3.  Slave_IO_Running: NO
+要是服务器是用复制的需要修改 修改uuid
+查询命令找此auto.cnf修改uuid即可：
+find -name auto.cnf
+其实这个文件就在mysql的data目录中/app/mysql-5.6/data，这是我的文件位置
+启mysql服务器，再查看mysql从节点的状态，恢复正常
+数据库生成uuid 方法:  select uuid();    去掉- 方法  SELECT REPLACE(UUID(), '-', '');  #将'-'符号替换掉
+5.配置没加载成功。有可能是数据库没有完全关闭，导致配置没有加载
