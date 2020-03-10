@@ -1,0 +1,91 @@
+
+[mysqld] 
+log-bin=mysql-bin  
+server-id=1      //设置数据库服务器唯一ID，这里我们指定为1。
+binlog-do-db=ymzdb  //设置需要同步的数据库，如果需要设置多个，则加入多条这行语句。
+2.重启数据库
+
+service mysqld restart
+3.登录主库
+
+mysql -u root -p //然后输入密码登录
+4.进入数据库之后给主数据库授权一个可以进行复制的用户，执行如下命令：
+
+mysql> grant replication slave on *.* to 'slave'@'%' identified by '123456';
+注意：用户名slave和密码123456可以自定义
+
+5.查看是否创建成功,命令如下
+
+mysql> use mysql;
+mysql> select user,host from user;
+
+
+6、查看主库信息
+
+mysql> show master status;
+
+
+注意：记录下这些值，在从库配置的时候要用到
+
+7.迁移数据，将主库的hyii2数据复制到从库，保证主从库拥有两个一样的数据库hyii2
+
+从数据库配置
+
+1.连接从库，修改mysql配置文件 /etc/my.cnf,这部分一定要配置在[mysqld]后面
+
+
+[mysqld]
+log-bin=mysql-bin
+server-id=2
+replicate-do-db=ymzdb
+
+
+ 2.登录到从库的数据库，做同步设置（此处要用到上面6中记录的数据）
+
+
+mysql>stop slave ; //先关闭库服务
+
+mysql> change master to 
+master_host='192.168.07.22',
+master_user='slave',
+master_password='123456',
+master_log_file='mysql-bin.000001',
+master_log_pos=392;
+
+mysql>start slave ; //启动库服务
+
+3、测试
+（1）、在主库上创建ymzdb模式，即：
+
+create schema ymzdb;
+（2）、在主库上的ymzdb模式里面创建comm_config表，即：
+
+use ymzdb;
+CREATE TABLE comm_config (configId varchar(200) NOT NULL ,configValue varchar(1024) DEFAULT NULL ,description varchar(2000) DEFAULT NULL ,PRIMARY KEY (configId)) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+（3）、在主库上往comm_config表中插入一条记录，即：
+
+insert into comm_config(configId, configValue, description) values('name', 'abcd', '测试一下');
+（4）、在从库上查看模式，即：
+show schemas;
+
+说明ymzdb模式同步到从库了
+
+（5）、在从库上查看jgyw模式下的表及数据，即：
+
+use ymzdb;
+show tables;
+结果为：
+
+说明表也同步好了，再查看数据，即：
+select * from comm_config;
+
+
+一些常见错误
+1.MySQL主从复制，启动slave时，出现下面报错：
+mysql> start slave;
+ERROR 1872 (HY000): Slave failed to initialize relay log info structure from the repository
+解决方案：
+mysql> reset slave;   重置slave
+mysql> change master to ......
+mysql> start slave;
+
