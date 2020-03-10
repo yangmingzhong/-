@@ -1,0 +1,16 @@
+1.设置固定ip    转发链接 https://blog.csdn.net/qq_40521919/article/details/89670472
+  vmware是设置
+  新增 这三个参数
+    cd /etc/sysconfig/network-scripts/ 
+   vi ifcfg-ens33
+   IPADDR="192.168.207.100"
+    NETMASK="255.255.255.0"
+    GATEWAY="192.168.207.1"
+    
+2.关于Linux遇到：network is unreachable的解决方法   
+       #第一步
+      cd /etc/sysconfig/network-scripts/ 
+      vi ifcfg-ens33
+      修改ONROOT   no改为yes
+      
+      最后service network restart
