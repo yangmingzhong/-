@@ -32,10 +32,10 @@ create user 'test'@'%' identified by '123';
 flush privileges;
 修改为允许所有root用户远程访问
 
-命令输入：GRANT ALL PRIVILEGES ON * . * TO `root`@`%` IDENTIFIED BY `123456` ;
+命令输入：GRANT ALL PRIVILEGES ON * . * TO `root`@`%` IDENTIFIED BY '123456' ;
 flush privileges;
 
-grant select,insert,update,delete on *.* to user1@localhost Identified by "password1";
+grant select,insert,update,delete on *.* to user1@localhost Identified by 'password1';
 如果希望该用户能够在任何机器上登陆mysql，则将localhost改为”%”。
 
 如果你不想user1有密码，可以再打一个命令将密码去掉。
