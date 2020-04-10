@@ -3,3 +3,8 @@
 查看空间情况   df -h  查看硬盘使用情况
 du -h *  查看当前目录文件大小（详细   ）  简要统计文件大小  du -sh   
 ls -1 当前文件完整情况 类似 ll
+nohub   shell 脚本 &  守护shell进程   例如 ：  nobub sh test.sh  &     
+nodejs 守护进程   
+    安装   npm install pm2 
+    ln -s /usr/local/nodejs/lib/node_modules/pm2/bin/pm2 /usr/local/bin
+    pm2  start node wss-socket
