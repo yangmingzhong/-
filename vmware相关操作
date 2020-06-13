@@ -2,10 +2,11 @@
   vmware是设置
   新增 这三个参数
     cd /etc/sysconfig/network-scripts/ 
-   vi ifcfg-ens33
-   IPADDR="192.168.207.100"
-    NETMASK="255.255.255.0"
-    GATEWAY="192.168.207.1"
+    vi ifcfg-ens33
+        BOOTPROTO="static" 
+        IPADDR="192.168.207.100"
+        NETMASK="255.255.255.0"
+        GATEWAY="192.168.207.1"
     
 2.关于Linux遇到：network is unreachable的解决方法   
        #第一步
