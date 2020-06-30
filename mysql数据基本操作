@@ -77,6 +77,8 @@ mysqldump –opt test > mysql.test
 即将数据库test数据库导出到mysql.test文件，后者是一个文本文件
 
 如：mysqldump -uroot -p123456 --databases dbname > mysql.dbname
+#!/bin/bash   #脚本gz压缩
+mysqldump -uusername -ppassword DatabaseName | gzip > /www/db/DatabaseName_$(date +%Y%m%d_%H%M%S).sql.gz
 
 就是把数据库dbname导出到文件mysql.dbname中。
 mysqldump -uroot -p123456   连接一起不用在重新输入密码
