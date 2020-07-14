@@ -4,9 +4,11 @@
     cd /etc/sysconfig/network-scripts/ 
     vi ifcfg-ens33
         BOOTPROTO="static" 
-        IPADDR="192.168.207.100"
+        IPADDR="192.168.85.100"
         NETMASK="255.255.255.0"
-        GATEWAY="192.168.207.1"
+        GATEWAY="192.168.85.1"
+        BROADCAST=192.168.85.255
+        DNS1=192.168.1.1    //属主  的网关
     
 2.关于Linux遇到：network is unreachable的解决方法   
        #第一步
