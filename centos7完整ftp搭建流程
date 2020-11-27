@@ -1,0 +1,179 @@
+一、ftp文件传输服务
+1、FTP连接的端口号
+21：传输控制使用，进行身份验证授权访问
+20：传输数据使用
+2、FTP连接模式
+主动模式：服务器端通过20号端口给客户端传输数据，POST指令表示主动连接，默认工作在主动模式
+被动模式：服务器端开放指定范围的端口号等待客户端建立数据连接，pasv指令表示被动模式
+3、FTP传输模式
+文本 模式：文本模式不支持传输流媒体数据，支持文本文件
+二进制模式：使用广泛支持传输文本文件流媒体数据
+4、FTP身份验证的方式
+匿名：使用ftp用户或者anonymous账户验证不需要密码
+本地身份验证：需要使用账户密码进行身份验证后访问数据
+虚拟账户验证：将多个用户映射到一个系统账户进行验证
+二、安装vsftpd服务
+1、安装vsftpd服务
+[root@ftp ~]# rpm -ivh /mnt/Packages/vsftpd-3.0.2-22.el7.x86_64.rpm  <!--安装ftp服务器端-->
+[root@ftp ~]# rpm -ivh /mnt/Packages/ftp-0.17-67.el7.x86_64.rpm      <!--安装ftp客户端-->
+.或者直接  yum -y install vsftpd
+2、配置虚拟用户
+1） 创建虚拟账户数据库文件
+[root@ftp ~]# mkdir  /etc/vsftpd/userdb
+[root@ftp ~]# vim /etc/vsftpd/userdb/vusers.list 
+            <!--奇数行是用户名，偶数行是密码-->
+bb
+bb@123456
+Cc
+cc@123456
+.
+2）生成虚拟账户数据库文件，数据库文件vusers.db
+[root@ftp ~]# db_load -T -t hash -f /etc/vsftpd/userdb/vusers.list /etc/vsftpd/userdb//vusers.db
+3）添加虚拟账户映射创建ftp根目录 创建宿主用户和虚拟用户
+[root@ftp ~]# mkdir /ftp
+[root@ftp ~]# useradd vsftpd -s /usr/sbin/nologin
+[root@ftp ~]# useradd -d /ftp/ftproot -s /sbin/nologin viruser
+4）设置ftp根目录的权限
+[root@ftp ~]# chmod 755 /ftp/ftproot/
+3、配置pam身份验证和创建虚拟账户权限目录
+1） 配置PAM什么验证
+[root@ftp ~]# vim /etc/pam.d/vsftpd
+#%PAM-1.0
+
+auth    required        pam_userdb.so db=/etc/vsftpd/vusers
+account required        pam_userdb.so db=/etc/vsftpd/vusers
+#上面不行的话请增加绝对路劲模仿下面
+auth    sufficient /lib64/security/pam_userdb.so db=/etc/vsftpd/userdb/vusers
+account sufficient /lib64/security/pam_userdb.so db=/etc/vsftpd/userdb/vusers
+4、修改vsftp主配置文件配置虚拟账户ftp
+1创建虚拟机账户权限目录
+[root@ftp ~]# mkdir /etc/vsftpd/vusers_config
+一个文件名一个文件 例如
+[root@ftp ~]# vim /etc/vsftpd/vusers_config/cc  
+内容为如下
+local_root=/ftp/ftproot
+
+2.增加当前虚拟宿主文件
+[root@ftp ~]# vim /etc/vsftpd/chroot_list
+
+内容为如下  当前新增 宿主用户
+viruser
+1）修改主配置文件
+[root@ftp ~]# vim /etc/vsftpd/vsftpd.conf
+anonymous_enable=NO       <!--是否允许匿名访问-->
+local_enable=YES         <!--是否允许本地系统用户访问-->
+write_enable=YES           <!--启用任何形式的写入权限（如上传、删除文件等）-->
+local_umask=022  <!--设置本地用户所上传文件的默认权限掩码值-->
+anon_umask=022 <!--设置匿名用户所上传文件的默认权限掩码值-->
+dirmessage_enable=YES<!--用户切换进入目录时显示.message文件（如果存在）的内容-->
+xferlog_enable=YES       <!--启用xferlog日志，默认记录到/var/log/xferlog-->
+connect_from_port_20=YES <!--允许服务器主动模式（从20端口建立数据连接）-->
+xferlog_std_format=YES <!--启用标准的xferlog日志格式，
+若禁用此项，将使用vsftp自己的日志格式-->
+listen=NO            <!--是否以独立运行的方式监听服务-->
+listen_ipv6=YES 
+chroot_local_user=YES<!--是否将FTP本地用户禁锢在宿主目录中-->
+allow_writeable_chroot=YES<!--允许被限制用户的主目录具有写权限-->
+guest_enable=YES 
+guest_username=viruser       <!--指定映射的系统用户名称-->
+user_config_dir=/etc/vsftpd/vusers_config/    
+        <!--位不同的虚拟用户建立独立的配置文件-->
+pam_service_name=vsftpd.vu     <!--指定新的PAM认证文件-->
+userlist_enable=YES    <!--是否启用user_list用户列表文件-->
+tcp_wrappers=YES           <!--是否启用TCP_Wrappers主机访问控制-->
+1.下面这个是完整可用
+anonymous_enable=NO
+local_enable=YES
+write_enable=YES
+local_umask=022
+dirmessage_enable=YES
+xferlog_std_format=YES
+xferlog_enable=YES
+connect_from_port_20=YES
+xferlog_file=/var/log/vsfpd.log
+dual_log_enable=YES
+vsftpd_log_file=/var/log/vsftpd.log
+idle_session_timeout=600
+data_connection_timeout=120
+nopriv_user=vsftpd
+async_abor_enable=YES
+ascii_upload_enable=YES
+ascii_download_enable=YES
+ftpd_banner=Welcome to cmore FTP  service.
+chroot_local_user=YES
+chroot_list_enable=YES
+chroot_list_file=/etc/vsftpd/chroot_list
+allow_writeable_chroot=YES
+ls_recurse_enable=YES
+listen=YES
+reverse_lookup_enable=NO
+pam_service_name=vsftpd
+userlist_enable=YES
+tcp_wrappers=YES
+pasv_enable=YES
+pasv_max_port=10188
+pasv_min_port=10000
+guest_enable=YES
+guest_username=viruser
+viruser_use_local_privs=YES
+user_config_dir=/etc/vsftpd/vusers_config
+2）主配置文件常见选项
+4）给cc用户设置访问ftp完全控制权限
+[root@ftp ~]# vim /etc/vsftpd/vusers_config/cc 
+anon_upload_enable=YES           <!--允许上传数据-->
+anon_mkdir_write_enable=YES    <!--允许创建目录或文件-->
+anon_other_write_enable=YES  <!--允许删除或覆盖文件目录-->
+5）设置tom账户拥有上传权限
+.
+[root@ftp ~]# vim /etc/vsftpd/vusers_config/tom
+
+anon_upload_enable=YES       <!--允许上传数据-->
+
+6）修改ftp根目录的所有者
+[root@ftp ~]# chown viruser:viruser /ftp/ftproot/
+7）启动ftp服务，设置开机自动启
+[root@ftp ~]# systemctl start vsftpd     <!--启动服务-->
+
+[root@ftp ~]# systemctl enable vsftpd   <!--设置开机自动启动-->
+
+三、总结
+1、全局配置项字段详
+listen=NO： 是否以独立运行的方式监听服务
+listen_address=IP地址：设置监听f t p服务的ip地址，默认监听所有IP地址；
+listen_port=21：设置监听ftp服务的端口号；
+write_enable=YES：开启写入权限；
+download_enable=YES：允许下载权限
+dirmessage_enable=YES：用户切换进入目录时显示 “.message”文件（如果已存在）的内容；
+xferlog_enable=YES：启用xferlog日志，默认记录到 /var/log/xferlog；
+xferlog_std_format=YES：ftp日志格式；
+connect_from_port_20=YES：数据连接端口号默认20；
+pasv_enable=NO：禁止被动模式连接；默认允许被动模式连接；
+pasv_max_port=21600：起始端口号；
+pasv_min_port=21700：结束端口号；
+pam_service_name=vsftpd：开启PAM验证；
+userlist_enable=YES：允许user_list列表用户登录ftp；
+userlist_deny=YES：不允许user_list列表用户登录ftp；
+max_clients=0：限制多个客户端同时连接（0为无限制）；
+max_per_ip=0：允许相同IP地址访问ftp连接次数（0为无限制）；
+tcp_wrappers=YES：ftp的访问控制列表提升安全性使用
+匿名配置项字段详解；
+anonymous_enable=YES：是否允许匿名访问；
+anon_umask=022：设置匿名用户所上传文件的默认权限掩码值（反掩码）；
+anon_root=/var/ftp：设置匿名用户的FTP根目录；
+anon_upload_enable=YES;是否允许匿名用户上传文件；
+anon_mkdir_write_enable=YES：是否允许匿名用户由创建目录的写入权限；
+anon_other_write_enable=YES：是否允许匿名用户有其他写入权限，如对文件改名、覆盖及删除文件等；
+2、本地用户配置项
+local_enable=YES：是否允许本地用户访问；
+local_umask=022：设置本地用户所上传文件的默认权限掩码值（反掩码）；
+local_root=/var/ftp：设置本地用户的FTP根目录（默认为用户的宿主目录）
+chroot_local_user=YES：是否将FTP本地用户禁锢在宿主目录中；
+allow_writeable_chroot=YES：允许被限制用户的主目录具有写权限；
+local_max_rate=0：限制本地用户的最大传输速率（0为无限制），单位为字节/秒（B/s）；
+3、虚拟用户配置项
+guest_username=test：指定映射的系统用户名称；
+guest_enable=YES：是否启用虚拟用户；
+allow_writeable_chroot=允许被限制用户的主目录具有写权限（此项必须写入，否则可能会报错）；
+anon_world_readable_only=NO：允许用户下载目录内容；
+anon_other_write_enable=YES：允许匿名用户有其他写入权限，如重命名、覆盖及删除文件等；
+user_config_dir=/etc/vsftpd/vusers_config：指定虚拟用户独立的配置文件目录；
