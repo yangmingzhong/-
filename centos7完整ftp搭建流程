@@ -40,8 +40,8 @@ cc@123456
 [root@ftp ~]# vim /etc/pam.d/vsftpd
 #%PAM-1.0
 
-auth    required        pam_userdb.so db=/etc/vsftpd/vusers
-account required        pam_userdb.so db=/etc/vsftpd/vusers
+auth    required        pam_userdb.so db=/etc/vsftpd/userdb//vusers
+account required        pam_userdb.so db=/etc/vsftpd/userdb//vusers
 #上面不行的话请增加绝对路劲模仿下面
 auth    sufficient /lib64/security/pam_userdb.so db=/etc/vsftpd/userdb/vusers
 account sufficient /lib64/security/pam_userdb.so db=/etc/vsftpd/userdb/vusers
@@ -49,9 +49,7 @@ account sufficient /lib64/security/pam_userdb.so db=/etc/vsftpd/userdb/vusers
 1创建虚拟机账户权限目录
 [root@ftp ~]# mkdir /etc/vsftpd/vusers_config
 一个文件名一个文件 例如
-[root@ftp ~]# vim /etc/vsftpd/vusers_config/cc  
-内容为如下
-local_root=/ftp/ftproot
+
 
 2.增加当前虚拟宿主文件
 [root@ftp ~]# vim /etc/vsftpd/chroot_list
@@ -117,23 +115,21 @@ guest_enable=YES
 guest_username=viruser
 viruser_use_local_privs=YES
 user_config_dir=/etc/vsftpd/vusers_config
-2）主配置文件常见选项
 4）给cc用户设置访问ftp完全控制权限
 [root@ftp ~]# vim /etc/vsftpd/vusers_config/cc 
+local_root=/ftp/ftproot
 anon_upload_enable=YES           <!--允许上传数据-->
 anon_mkdir_write_enable=YES    <!--允许创建目录或文件-->
 anon_other_write_enable=YES  <!--允许删除或覆盖文件目录-->
 5）设置tom账户拥有上传权限
-.
 [root@ftp ~]# vim /etc/vsftpd/vusers_config/tom
-
 anon_upload_enable=YES       <!--允许上传数据-->
-
 6）修改ftp根目录的所有者
 [root@ftp ~]# chown viruser:viruser /ftp/ftproot/
 7）启动ftp服务，设置开机自动启
 [root@ftp ~]# systemctl start vsftpd     <!--启动服务-->
-
+[root@ftp ~]# systemctl restart vsftpd     <!--重启服务-->
+[root@ftp ~]# systemctl stop vsftpd     <!--关闭服务-->
 [root@ftp ~]# systemctl enable vsftpd   <!--设置开机自动启动-->
 
 三、总结
