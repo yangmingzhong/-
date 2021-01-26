@@ -1,4 +1,4 @@
-
+主从
 [mysqld] 
 log-bin=mysql-bin  
 server-id=1      //设置数据库服务器唯一ID，这里我们指定为1。
@@ -21,10 +21,7 @@ mysql> select user,host from user;
 
 
 6、查看主库信息
-
 mysql> show master status;
-
-
 注意：记录下这些值，在从库配置的时候要用到
 
 7.迁移数据，将主库的hyii2数据复制到从库，保证主从库拥有两个一样的数据库hyii2
@@ -53,7 +50,8 @@ master_log_file='mysql-bin.000001',
 master_log_pos=392;
 
 mysql>start slave ; //启动库服务
-
+查看从库状态
+show slave status \G;
 3、测试
 （1）、在主库上创建ymzdb模式，即：
 
@@ -89,9 +87,6 @@ mysql> reset slave;   重置slave
 mysql> change master to ......
 mysql> start slave;
 
-查看从库状态
-show slave status \G;
-
 2 Slave_SQL_Running:No的两种解决办法
 解决办法1
 mysql> stop slave ;
@@ -114,3 +109,40 @@ find -name auto.cnf
 启mysql服务器，再查看mysql从节点的状态，恢复正常
 数据库生成uuid 方法:  select uuid();    去掉- 方法  SELECT REPLACE(UUID(), '-', '');  #将'-'符号替换掉
 5.配置没加载成功。有可能是数据库没有完全关闭，导致配置没有加载
+
+
+
+主主配置  （就是增长反过来，主为从配置  从为主配置）
+
+master（主）
+配置文件
+auto-increment-increment = 2   //每次增长2
+auto-increment-offset = 1  //设置自动增长的字段的偏移量，即初始值为1
+
+mysql>stop slave ; //先关闭库服务
+mysql> change master to 
+master_host='192.168.85.136',
+master_user='slave',
+master_password='123456',
+master_log_file='mysql-bin.000001',
+master_log_pos=392;
+
+mysql>start slave ; //启动库服务
+查看从库状态
+show slave status \G;
+
+从（slave）
+配置文件
+auto-increment-increment = 2  //每次增长2
+auto-increment-offset = 2 //设置自动增长的字段的偏移量，即初始值为2
+
+mysql -u root -p //然后输入密码登录
+进入数据库之后给主数据库授权一个可以进行复制的用户，执行如下命令：
+mysql> grant replication slave on *.* to 'slave'@'%' identified by '123456';
+注意：用户名slave和密码123456可以自定义
+
+mysql> show master status;
+注意：记录下这些值，在从库配置的时候要用到
+
+
+
