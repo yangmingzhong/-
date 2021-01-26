@@ -149,7 +149,7 @@ mysql>start slave ; //启动库服务
 查看从库状态
 show slave status \G;
 
-从（slave）
+主（master）
 配置文件
 log-bin=mysql-bin  
 server-id=2 
@@ -165,6 +165,41 @@ mysql> grant replication slave on *.* to 'slave'@'%' identified by '123456';
 
 mysql> show master status;
 注意：记录下这些值，在从库配置的时候要用到
+
+
+多主 一从的情况下
+
+从（slave）
+配置文件为
+
+log-bin=mysql-bin
+binlog_format=mixed
+server-id=2
+#replicate-do-db=ymzdb
+master_info_repository      = table
+relay_log_info_repository   = table   
+
+mysql> stop slave;
+mysql> change master to 
+master_host='192.168.07.22',
+master_user='slave',
+master_password='123456',
+master_log_file='mysql-bin.000001',
+master_log_pos=392
+for channel '1';   #多增加该值，多个主就多个通道
+mysql> change master to 
+master_host='192.168.07.22',
+master_user='slave',
+master_password='123456',
+master_log_file='mysql-bin.000001',
+master_log_pos=392
+for channel '2';   #多增加该值，多个主就多个通道
+mysql> start slave;
+查看从库状态
+show slave status \G;
+
+
+
 
 
 
