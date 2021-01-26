@@ -76,7 +76,21 @@ show tables;
 
 说明表也同步好了，再查看数据，即：
 select * from comm_config;
+自动删除：
 
+my.cnf中加入以下，然后重启：
+
+SET GLOBAL expire_logs_days = 7              \\设置二进制日志只保留7天的
+
+ -------如果不想重启直接mysql> SET GLOBAL expire_logs_days = 7
+
+#重置master二进制日志文件及内容     
+
+mysql> reset master;
+
+或者是  
+
+mysql>flush logs;
 
 一些常见错误
 1.MySQL主从复制，启动slave时，出现下面报错：
@@ -116,6 +130,10 @@ find -name auto.cnf
 
 master（主）
 配置文件
+log-bin=mysql-bin  
+server-id=1 
+binlog_do_db=ymzdb        #指定binlog日志是记录的是哪个库
+replicate-do-db=ymzdb
 auto-increment-increment = 2   //每次增长2
 auto-increment-offset = 1  //设置自动增长的字段的偏移量，即初始值为1
 
@@ -133,6 +151,10 @@ show slave status \G;
 
 从（slave）
 配置文件
+log-bin=mysql-bin  
+server-id=2 
+binlog_do_db=ymzdb        #指定binlog日志是记录的是哪个库
+replicate-do-db=ymzdb
 auto-increment-increment = 2  //每次增长2
 auto-increment-offset = 2 //设置自动增长的字段的偏移量，即初始值为2
 
