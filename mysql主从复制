@@ -89,6 +89,9 @@ mysql> reset slave;   重置slave
 mysql> change master to ......
 mysql> start slave;
 
+查看从库状态
+show slave status \G;
+
 2 Slave_SQL_Running:No的两种解决办法
 解决办法1
 mysql> stop slave ;
