@@ -74,6 +74,17 @@ GOROOT=/usr/lib/golang
 5. 启动 geth 重要参数
 直接在命令行运行 geth 不就行了么，当然可以，geth 会立马启动主网数据同步的准备工作。当还是建议关注一下下面的参数：
 
+–syncmode	同步模式，有三种”fast” ,”full”,”light”.
+–networkid	网络ID(整型, 1=Main, 2=Morden (弃用), 3=Ropsten, 4=Rinkeby) 这里我们使用默认值 1 表示同步主网的数据
+–datadir	钱包以及区块数据等存储目录，这个建议单独使用数据盘，不要指定系统盘的文件夹
+–identity	节点标识符
+–rpc	开启 RPC 服务
+–rpcapi	开放那些 API 给 JSONRPC 调用，默认 personal 工具是不开放的
+–rpccorsdomain	RPC 调用跨域限制，*号标识不限制
+–rpcport	JSONRPC 服务监控的端口
+–port	同步服务端口
+–rpcaddr	可以调用 RPC 服务的IP地址，默认只允许本地连接，不开放给其他用户，设置成 0.0.0.0可以接受任何地址发来的请求
+
 --datadir "xxxx" 指定数据目录，用来存放区块链数据，状态数据，keystore数据等。如果不加这个参数这些数据在不同的系统会放到不同的位置。这个目录占用空间是比较大的，我一般会指定一个目录，并保证这个目录所在分区有足够的磁盘空间。
 --cache value 分配给内部缓存的内存MB数量，默认为 128，最后设置大一点儿，起码 1024吧，这个值设大一些可以提高数据同步效率。
 --rpc                       启用HTTP-RPC服务器
