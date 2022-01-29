@@ -96,42 +96,29 @@ GOROOT=/usr/lib/golang
 
 增加 genesis.json
 {
-    "config": {
-        "chainId": 1515,
-        "homesteadBlock": 1,
-        "eip150Block": 2,
-        "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-        "eip155Block": 3,
-        "eip158Block": 3,
-        "byzantiumBlock": 4,
-        "clique": {
-            "period": 1,
-            "epoch": 30000
-        }
-    },
-    "nonce": "0x0",
-    "timestamp": "0x5a722c92",
-    "extraData": "0x000000000000000000000000000000000000000000000000000000000000000008a58f09194e403d02a1928a7bf78646cfc260b087366ef81db496edd0ea2055ca605e8686eec1e60000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-    "gasLimit": "0xffffffff",
-    "difficulty": "0x1",
-    "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-    "coinbase": "0x0000000000000000000000000000000000000000",
-    "alloc": {
-        "08a58f09194e403d02a1928a7bf78646cfc260b0": {
-            "balance": "0x200000000000000000000000000000000000000000000000000000000000000"
-        },
-        "87366ef81db496edd0ea2055ca605e8686eec1e6": {
-            "balance": "0x200000000000000000000000000000000000000000000000000000000000000"
-        },
-        "F464A67CA59606f0fFE159092FF2F474d69FD675": {
-            "balance": "0x200000000000000000000000000000000000000000000000000000000000000"
-        }
-    },
-    "number": "0x0",
-    "gasUsed": "0x0",
-    "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+  "config": {
+    "chainId": 889,
+    "homesteadBlock": 0,
+    "eip150Block": 0,
+    "eip155Block": 0,
+    "eip158Block": 0,
+    "byzantiumBlock": 0,
+    "constantinopleBlock": 0,
+    "petersburgBlock": 0,
+    "istanbulBlock": 0,
+    "berlinBlock": 0,
+    "londonBlock": 0
+  },
+  "alloc": {},
+  "coinbase": "0x0000000000000000000000000000000000000000",
+  "difficulty": "0x20000",
+  "extraData": "",
+  "gasLimit": "0xffffffff",
+  "nonce": "0x0000000000000042",
+  "mixhash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "timestamp": "0x00"
 }
-
 
 初始化 创世模块
 geth init genesis.json  
@@ -140,16 +127,16 @@ geth init genesis.json
 
 
 
-geth --datadir data --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0 --networkid 1515  --ws --wsaddr 0.0.0.0 --wsport 8877 --wsorigins "*"
+geth --datadir data --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0 --networkid 889  --ws --wsaddr 0.0.0.0 --wsport 8877 --wsorigins "*"
 这里把 rpcaddr 设为是的，最好指定特定 ip 地址或者通过反向代理或防火墙控制对 geth 节点的访问
 
 6. 后台启动 geth
 如果直接在 shell 终端直接启动 geth，终端关掉进程也就关掉了，可以通过下面的命令使 geth 在后台运行
 
-nohup geth --datadir data --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0 --networkid 1515  --ws --wsaddr 0.0.0.0 --wsport 8877 --wsorigins "*" & > nohup.out
+nohup geth --syncmode "fast" --networkid 889 --datadir data --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0   --ws --wsaddr 0.0.0.0 --wsport 8877 --wsorigins "*" & > nohup.out
 但如果直接在 shell 终端运行，可以用 CTRL + C 关闭进程，如何关闭运行在后台的 geth 进程呢，写了个简单的脚本如下：
 完整的启动方式
-nohup geth --syncmode "fast" --networkid 1 --datadir blockdata --cache 4096 --identity "hzblock" --rpc --rpcapi "db,eth,net,web3,personal,admin,txpool" --rpcport 8545 --port 30303 --rpcaddr 0.0.0.0 --ws --wsaddr 0.0.0.0 --wsport 8546 --wsorigins "*"  --rpccorsdomain "*" & > nohup.out
+nohup geth --syncmode "fast" --networkid 889 --datadir data --cache 4096 --identity "hzblock" --rpc --rpcapi "db,eth,net,web3,personal,admin,txpool" --rpcport 8866 --port 30303 --rpcaddr 0.0.0.0 --ws --wsaddr 0.0.0.0 --wsport 8877 --wsorigins "*"  --rpccorsdomain "*" & > nohup.out
 
 #!/bin/sh
 pid=`ps -ef|grep geth|grep -v grep|awk '{print $2}'`
