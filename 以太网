@@ -93,7 +93,41 @@ GOROOT=/usr/lib/golang
 --ws                        启用WS-RPC服务器，几乎所有第三方节点都不启动这个服务，而要监听以太坊事件又必须启动这个服务
 --wsaddr value              WS-RPC服务器监听接口地址(默认值:“localhost”)
 --wsport value              WS-RPC服务器监听端口(默认值:8546)
+
+增加 genesis.json
+{
+  "config": {
+    "chainId": 666,
+    "homesteadBlock": 0,
+    "eip150Block": 0,
+    "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "eip155Block": 0,
+    "eip158Block": 0,
+    "byzantiumBlock": 0,
+    "constantinopleBlock": 0,
+    "petersburgBlock": 0,
+    "istanbulBlock": 0,
+    "ethash": {}
+  },
+  "nonce": "0x0",
+  "timestamp": "0x5ddf8f3e",
+  "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "gasLimit": "0x47b760",
+  "difficulty": "0x00002",
+  "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "coinbase": "0x0000000000000000000000000000000000000000",
+  "alloc": { },
+  "number": "0x0",
+  "gasUsed": "0x0",
+  "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+}
+
+初始化传世模块
+geth init genesis.json  
 最后启动 geth 的命令看起来是这样的：
+
+
+
 
 geth --datadir data --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0  --ws --wsaddr 0.0.0.0 --wsport 8877 --wsorigins "*"
 这里把 rpcaddr 设为是的，最好指定特定 ip 地址或者通过反向代理或防火墙控制对 geth 节点的访问
