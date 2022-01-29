@@ -122,7 +122,7 @@ GOROOT=/usr/lib/golang
   "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
 }
 
-初始化传世模块
+初始化 创世模块
 geth init genesis.json  
 最后启动 geth 的命令看起来是这样的：
 
@@ -137,6 +137,8 @@ geth --datadir data --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0  --ws --
 
 nohup geth --datadir data --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0  --ws --wsaddr 0.0.0.0 --wsport 8877 --wsorigins "*" & > nohup.out
 但如果直接在 shell 终端运行，可以用 CTRL + C 关闭进程，如何关闭运行在后台的 geth 进程呢，写了个简单的脚本如下：
+完整的启动方式
+nohup geth --syncmode "fast" --networkid 1 --datadir blockdata --cache 4096 --identity "hzblock" --rpc --rpcapi "db,eth,net,web3,personal,admin,txpool" --rpcport 8545 --port 30303 --rpcaddr 0.0.0.0 --ws --wsaddr 0.0.0.0 --wsport 8546 --wsorigins "*"  --rpccorsdomain "*" & > nohup.out
 
 #!/bin/sh
 pid=`ps -ef|grep geth|grep -v grep|awk '{print $2}'`
@@ -205,10 +207,3 @@ Fatal: Error starting protocol stack: missing block number for head header hash
 
 方案： 确保节点监听端口 30303 已经在防火墙打开，此端口在防火墙放行后，可大大提高主网数据同步的稳定性
 
-总结
-本文讲解了以太坊主网节点搭建从准备到数据同步完成的全过程，希望能给有看到本文的人带来一些帮助。以后有相关经验积累也会同步更新到这篇文章中，大家在搭建节点的过程中有碰到什么问题，也可以给我留言或同我联系，同学习共进步。
-
-作者：Ashton
-链接：https://www.jianshu.com/p/719a34fe484d
-来源：简书
-著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
