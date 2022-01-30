@@ -128,12 +128,16 @@ geth init genesis.json
 
 
 geth --datadir data --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0 --networkid 889  --ws --wsaddr 0.0.0.0 --wsport 8877 --wsorigins "*"
+
+geth --syncmode "fast" --datadir data --networkid 889 --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0   --allow-insecure-unlock
 这里把 rpcaddr 设为是的，最好指定特定 ip 地址或者通过反向代理或防火墙控制对 geth 节点的访问
 
 6. 后台启动 geth
 如果直接在 shell 终端直接启动 geth，终端关掉进程也就关掉了，可以通过下面的命令使 geth 在后台运行
 
 nohup geth --syncmode "fast" --networkid 889 --datadir data --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0   --ws --wsaddr 0.0.0.0 --wsport 8877 --wsorigins "*" & > nohup.out
+
+nohup geth --syncmode "fast" --datadir data --networkid 889 --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0   --allow-insecure-unlock  & > nohup.out
 但如果直接在 shell 终端运行，可以用 CTRL + C 关闭进程，如何关闭运行在后台的 geth 进程呢，写了个简单的脚本如下：
 完整的启动方式
 nohup geth --syncmode "fast" --networkid 889 --datadir data --cache 4096 --identity "hzblock" --rpc --rpcapi "db,eth,net,web3,personal,admin,txpool" --rpcport 8866 --port 30303 --rpcaddr 0.0.0.0 --ws --wsaddr 0.0.0.0 --wsport 8877 --wsorigins "*"  --rpccorsdomain "*" & > nohup.out
