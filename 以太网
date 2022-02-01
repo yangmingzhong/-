@@ -127,7 +127,7 @@ GOROOT=/usr/lib/golang
 
 geth --datadir <path_of_data_directory> account new 
 ( I have used command line method for account creation, which does not require invocation of geth console)
-
+password   abc123
 2)将新账户填入到 alloc里面
 
 3) 初始化配置文件genesis.json
