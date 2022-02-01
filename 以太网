@@ -109,7 +109,10 @@ GOROOT=/usr/lib/golang
     "berlinBlock": 0,
     "londonBlock": 0
   },
-  "alloc": {},
+  "alloc": {		
+    "0xe6e3c70727869D7ccEB4f8006827D8cB4D0b41f1": {
+    "balance": "30000000000000"}
+    },
   "coinbase": "0x0000000000000000000000000000000000000000",
   "difficulty": "0x20000",
   "extraData": "",
@@ -119,6 +122,17 @@ GOROOT=/usr/lib/golang
   "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "timestamp": "0x00"
 }
+
+1) 先创建一个新账户
+
+geth --datadir <path_of_data_directory> account new 
+( I have used command line method for account creation, which does not require invocation of geth console)
+
+2)将新账户填入到 alloc里面
+
+3) 初始化配置文件genesis.json
+
+geth --datadir <path_of_data_directory> init <path_of_genesis_file>
 
 初始化 创世模块
 geth init genesis.json  
@@ -133,13 +147,13 @@ geth --syncmode "fast" --datadir data --networkid 889 --cache 4096 --rpc --rpcpo
 这里把 rpcaddr 设为是的，最好指定特定 ip 地址或者通过反向代理或防火墙控制对 geth 节点的访问
 
 6. 后台启动 geth
-如果直接在 shell 终端直接启动 geth，终端关掉进程也就关掉了，可以通过下面的命令使 geth 在后台运行
+如果直接在 shell 终端直接启动 geth，终端关掉进程也就关掉了，可以通过下面的命令使 geth 在后台运行   运用测试网络节点  --testnet
 
-nohup geth --syncmode "fast" --networkid 889 --datadir data --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0  --targetgaslimit "80000000"  --ws --wsaddr 0.0.0.0 --wsport 8877 --wsorigins "*" & > nohup.out
+nohup geth --testnet --syncmode "fast" --networkid 889 --datadir data --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0  --targetgaslimit "80000000"  --ws --wsaddr 0.0.0.0 --wsport 8877 --wsorigins "*" & > nohup.out
 
-nohup geth --syncmode "fast" --datadir data --networkid 889 --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0  --targetgaslimit "80000000" --rpccorsdomain "*" --allow-insecure-unlock  & > nohup.out但如果直接在 shell 终端运行，可以用 CTRL + C 关闭进程，如何关闭运行在后台的 geth 进程呢，写了个简单的脚本如下：
+nohup geth --testnet --syncmode "fast" --datadir data --networkid 889 --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0  --targetgaslimit "80000000" --rpccorsdomain "*" --allow-insecure-unlock  & > nohup.out但如果直接在 shell 终端运行，可以用 CTRL + C 关闭进程，如何关闭运行在后台的 geth 进程呢，写了个简单的脚本如下：
 
-nohup geth --syncmode "fast" --datadir dbdata --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0  --miner.gasprice 1000000000 --miner.gastarget 4712388 --miner.gaslimit 80000000 --rpccorsdomain "*" --allow-insecure-unlock  & > nohup.out
+nohup geth --testnet --syncmode "fast" --datadir dbdata --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0  --miner.gasprice 1000000000 --miner.gastarget 4712388 --miner.gaslimit 80000000 --rpccorsdomain "*" --allow-insecure-unlock  & > nohup.out
 完整的启动方式
 nohup geth --syncmode "fast" --networkid 889 --datadir data  --targetgaslimit "80000000" --cache 4096 --identity "hzblock" --rpc --rpcapi "db,eth,net,web3,personal,admin,txpool" --rpcport 8866 --port 30303 --rpcaddr 0.0.0.0 --ws --wsaddr 0.0.0.0 --wsport 8877 --wsorigins "*"  --rpccorsdomain "*" & > nohup.out
 
