@@ -138,6 +138,8 @@ geth --syncmode "fast" --datadir data --networkid 889 --cache 4096 --rpc --rpcpo
 nohup geth --syncmode "fast" --networkid 889 --datadir data --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0  --targetgaslimit "80000000"  --ws --wsaddr 0.0.0.0 --wsport 8877 --wsorigins "*" & > nohup.out
 
 nohup geth --syncmode "fast" --datadir data --networkid 889 --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0  --targetgaslimit "80000000" --rpccorsdomain "*" --allow-insecure-unlock  & > nohup.out但如果直接在 shell 终端运行，可以用 CTRL + C 关闭进程，如何关闭运行在后台的 geth 进程呢，写了个简单的脚本如下：
+
+nohup geth --syncmode "fast" --datadir dbdata --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0  --miner.gasprice 1000000000 --miner.gastarget 4712388 --miner.gaslimit 80000000 --rpccorsdomain "*" --allow-insecure-unlock  & > nohup.out
 完整的启动方式
 nohup geth --syncmode "fast" --networkid 889 --datadir data  --targetgaslimit "80000000" --cache 4096 --identity "hzblock" --rpc --rpcapi "db,eth,net,web3,personal,admin,txpool" --rpcport 8866 --port 30303 --rpcaddr 0.0.0.0 --ws --wsaddr 0.0.0.0 --wsport 8877 --wsorigins "*"  --rpccorsdomain "*" & > nohup.out
 
