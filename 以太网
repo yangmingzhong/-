@@ -156,6 +156,8 @@ nohup geth --testnet --syncmode "fast" --datadir data --networkid 889 --cache 40
 nohup geth --testnet --syncmode "fast" --datadir dbdata --cache 4096 --rpc --rpcport 8866 --rpcaddr 0.0.0.0  --miner.gasprice 1000000000 --miner.gastarget 4712388 --miner.gaslimit 80000000 --rpccorsdomain "*" --allow-insecure-unlock  & > nohup.out
 完整的启动方式
 nohup geth --syncmode "fast" --networkid 889 --datadir data  --targetgaslimit "80000000" --cache 4096 --identity "hzblock" --rpc --rpcapi "db,eth,net,web3,personal,admin,txpool" --rpcport 8866 --port 30303 --rpcaddr 0.0.0.0 --ws --wsaddr 0.0.0.0 --wsport 8877 --wsorigins "*"  --rpccorsdomain "*" & > nohup.out
+全节点更新  16g内存
+nohup geth  --syncmode "full"  --datadir data --cache 8192 --rpc --rpcport 8866 --rpcaddr 0.0.0.0  --rpccorsdomain "*" --allow-insecure-unlock & > nohup.out
 
 #!/bin/sh
 pid=`ps -ef|grep geth|grep -v grep|awk '{print $2}'`
