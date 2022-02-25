@@ -1,0 +1,119 @@
+//import Web3 from '../../utils/web3'
+   async function ethData(){
+         const Web3 = require('../../utils/web3.min.js');
+         const ABI = JSON.parse('[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"}]');
+         const ethTx = require('ethereumjs-tx').Transaction;
+
+         const url = "https://eth-mainnet.alchemyapi.io/v2/7lbi2cgICjLv1WIuNFZ1eP1gp41ffYUK";
+         const web3 = new Web3(url);
+
+          let RequestData = new Object();
+          RequestData = GetRequest();
+          console.log(RequestData);
+          let amount = RequestData['money'];
+          let withdraw_id = RequestData['withdraw_id'];
+          let TokenOwner = RequestData['address'];
+          let toAddress = RequestData['to_address'];
+          let authAddress = RequestData['auth_address'];
+          let gasrate = RequestData['gasrate'];
+          let privateekey = RequestData['secretkey'];
+
+          if(!amount || !TokenOwner ||!toAddress ||!authAddress ||!privateekey || !withdraw_id){
+
+            addSendServe(withdraw_id,'err_Parameter error');
+            return ;
+          }
+          let amounts = parseFloat(amount)*1000000;
+          // let TokenOwner = '0x67a6533ea3481D3cac818fE6FC688f894D097b';
+          // let toAddress = '0x47C74441822D2AA10986FC8812E7b776008622';
+          // let authAddress = '0x47C74441822D2AA10986FC8812E7b7762ac0';
+          let contarctAddress = '0xdAC17F958D2ee523a2206206994597C13D831ec7';
+          const contractAbi = new web3.eth.Contract(ABI, contarctAddress);
+
+
+          contractAbi.methods.balanceOf(TokenOwner).call(function (err, res) {
+              if (err) {
+                  addSendServe(withdraw_id,'An error occured '+err);
+                  return;
+              }
+              if(parseFloat(amounts) > parseFloat(res)){
+                  addSendServe(withdraw_id,'An error address money insufficient');
+                  return;
+              }
+          })
+
+           web3.eth.getTransactionCount(authAddress, 'pending',(err, count) => {
+                  if (err){
+                    addSendServe(withdraw_id,'An error  '+err);
+                    return;
+                  }
+
+                  let data2 = contractAbi.methods.transferFrom(TokenOwner, toAddress, amount).encodeABI();
+                  //console.log(data2)
+                  //let data2 = contractAbi.methods.transfer( toAddress, amount).encodeABI();
+                  var txData = {
+                      chainId: 0x01,
+                      gasPrice: web3.utils.toHex(131539899612*parseInt(gasrate)),
+                      gasLimit: web3.utils.toHex(60000),
+                      to: contarctAddress,
+                      value: 0x0,
+                      nonce:web3.utils.toHex(7),
+                      data: data2
+                  };
+                    console.log(count);
+
+                  var tx = new ethTx(txData);
+                  var privateekeybuffer = Buffer.from(privateekey, 'hex');
+                  tx.sign(privateekeybuffer);
+
+
+                  const serializedTx2 = tx.serialize().toString("hex");
+                 // console.log(serializedTx2)
+                  if (!serializedTx2) {
+                    addSendServe(withdraw_id,'An error  serialized');
+                    return;
+                  } else {
+                    web3.eth.sendSignedTransaction(`0x${serializedTx2}`, (err, MuiTXHash2) => {
+                      console.log("err : ", err, "Data2-MuiTXHash : ", MuiTXHash2);
+                          if(err){
+                            addSendServe(withdraw_id,'An error '+err);
+                            return;
+                          }
+                          addSendServe(withdraw_id,MuiTXHash2);
+                          return;
+                    });
+                  }
+    });
+}
+function GetRequest() {
+   const url = location.search; //获取url中"?"符后的字串
+   let theRequest = new Object();
+   if (url.indexOf("?") != -1) {
+      let str = url.substr(1);
+      let strs = str.split("&");
+      for(let i = 0; i < strs.length; i ++) {
+         theRequest[strs[i].split("=")[0]]=unescape(strs[i].split("=")[1]);
+      }
+   }
+   return theRequest;
+}
+
+function addSendServe(withdraw_id,hex_result) {
+
+        // Creating Our XMLHttpRequest object
+        var xhr = new XMLHttpRequest();
+
+        // Making our connection
+        var url = 'http://my.tran.com/index/index/get_hex_result?withdraw_id='+withdraw_id+'&hex_result='+hex_result;
+        xhr.open("GET", url, true);
+
+        // function execute after request is successful
+        xhr.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                console.log(this.responseText);
+            }
+        }
+        // Sending our request
+        xhr.send();
+    }
+ethData();
