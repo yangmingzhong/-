@@ -1,0 +1,84 @@
+github 源码安装    https://github.com/openethereum/openethereum
+yum install -y gcc g++ pkg-config file make  clang clang++  gcc-c++ 
+安装比较新的cmake
+wget -c https://github.com/Kitware/CMake/releases/download/v3.17.0-rc3/cmake-3.17.0-rc3.tar.gz
+tar zxvf cmake-3.17.0-rc3.tar.gz
+cd cmake-3.17.0-rc3
+./bootstrap
+gmake
+gmake install
+
+yum remove cmake
+ln -s /usr/local/bin/cmake /usr/bin/cmake
+cmake --version
+
+安装
+Perl
+Yasm
+
+curl https://sh.rustup.rs -sSf | sh
+切换rust版本
+rustup override set 1.51.0
+
+# download Parity Ethereum code
+$ git clone https://github.com/paritytech/parity-ethereum
+$ cd parity-ethereum
+
+# build in release mode
+$ cargo build --release --features final
+
+清理
+cargo clean
+执行
+bash <(curl https://get.parity.io -L)
+
+设置到全局
+install ./target/release/openethereum /usr/bin/openethereum
+
+常规启动
+openethereum 
+openethereum --help
+
+openethereum  --jsonrpc-port=8866 --jsonrpc-cors=all --jsonrpc-interface=all --jsonrpc-hosts=all --jsonrpc-apis=web3,eth,net,parity --ws-interface=all --ws-apis=web3,eth,net,parity,pubsub --ws-origins=all --ws-hosts=all --ws-max-connections=500 --max-peers=500 --db-path=/ethdata/openeth/data
+
+–chain xda 指定连接XDAI链
+
+–jsonrpc-port=8545 指定JSON RPC接口服务端口 8545
+
+–jsonrpc-cors=all 指定跨域资源共享方式 all全部
+
+–jsonrpc-interface=all 指定JSON RPC 接口监听IP地址 all 全部
+
+–jsonrpc-hosts=all 允许访问JSON RPC 接口的主机 all 全部
+
+–jsonrpc-apis=web3,eth,net,parity 指定JSON RPC 接口开放的API
+
+–ws-interface=all 指定 WebSocket 协议监听IP地址
+
+–ws-apis=web3,eth,net,parity,pubsub 指定WebSocket 协议开放的API
+
+–ws-origins=all 允许WebSocket 协议请求的源地址 all 全部
+
+–ws-hosts=all 允许WebSocket 协议请求的主机 all 全部
+
+–ws-max-connections=500 允许WebSocket 协议请求最大的连接数
+
+
+
+配置文件
+vim config.toml
+[parity]
+mode = "offline"  # 需要同步的话要改成active
+base_path = "/ethdata/openeth/data"
+identity = "main_server"
+
+[rpc]
+apis = ["all"]
+server_threads = 2
+port = 8866
+interface = "all"
+hosts = ["172.31.3.100", "127.0.0.1"]
+
+[misc]
+log_file = "/opt/openethereum/logs/openethereum.log"
+logging = "debug"
