@@ -40,7 +40,8 @@ openethereum
 openethereum --help
 
 openethereum  --jsonrpc-port=8866 --jsonrpc-cors=all --jsonrpc-interface=all --jsonrpc-hosts=all --jsonrpc-apis=web3,eth,net,parity --ws-interface=all --ws-apis=web3,eth,net,parity,pubsub --ws-origins=all --ws-hosts=all --ws-max-connections=500 --max-peers=500 --db-path=/ethdata/openeth/data
-
+nohup openethereum  --jsonrpc-port=8866 --jsonrpc-cors=all --jsonrpc-interface=all --jsonrpc-hosts=all --jsonrpc-apis=web3,eth,net,parity --ws-interface=all --ws-apis=web3,eth,net,parity,pubsub --ws-origins=all --ws-hosts=all --ws-max-connections=500 --max-peers=500 --db-path=/ethdata/openeth/data
+ & > nohup.out
 –chain xda 指定连接XDAI链
 
 –jsonrpc-port=8545 指定JSON RPC接口服务端口 8545
