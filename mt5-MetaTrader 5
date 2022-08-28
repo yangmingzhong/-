@@ -1,0 +1,30 @@
+1、查看是否安装桌面
+wuhs@s147:~$ dpkg -s ubuntu-desktop
+
+2更新apt软件列表
+root@s147:~# apt update
+
+3、安装ubuntu-desktop
+#Ubuntu支持的桌面软件有很多种，Ubuntu-desktop是Ubuntu默认桌面软件。（此安装过程需要半小时以上）
+root@s147:~# apt-get install -y ubuntu-desktop
+
+4、再次检查是否安装桌面
+root@s147:~# dpkg -l ubuntu-desktop
+
+5、查看系统默认级别
+wuhs@s147:~$ systemctl get-default
+6、修改启动级别   此级别为桌面版
+wuhs@s147:~$ sudo systemctl set-default graphical.target
+
+7修改启动级别为命令行  此为密令行
+wuhs@s147:~$ sudo systemctl set-default multi-user.target
+
+8、重启服务器
+wuhs@s147:~$ sudo reboot
+
+9 window  远程连接乌班图  mstsc
+https://www.163.com/dy/article/FE796RVQ0538BBGN.html
+
+10  下载安装  MetaTrader 5
+
+https://www.mql5.com/zh/articles/625?utm_source=mt4terminal&utm_campaign=download.metatrader5
